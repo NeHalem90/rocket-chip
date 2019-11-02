@@ -12,13 +12,14 @@ class TestHarness()(implicit p: Parameters) extends Module {
     val success = Bool(OUTPUT)
   }
 
-  val dut = Module(LazyModule(new ExampleRocketSystem).module)
+  val ldut = LazyModule(new ExampleRocketSystem)
+  val dut = Module(ldut.module)
   dut.reset := reset | dut.debug.ndreset
 
   dut.dontTouchPorts()
   dut.tieOffInterrupts()
-  dut.connectSimAXIMem()
-  dut.connectSimAXIMMIO()
-  dut.l2_frontend_bus_axi4.foreach(_.tieoff)
+  SimAXIMem.connectMem(ldut)
+  SimAXIMem.connectMMIO(ldut)
+  ldut.l2_frontend_bus_axi4.foreach(_.tieoff)
   Debug.connectDebug(dut.debug, clock, reset, io.success)
 }
